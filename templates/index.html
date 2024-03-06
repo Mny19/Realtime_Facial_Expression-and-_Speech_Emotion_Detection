@@ -1,0 +1,75 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion Detection Web App</title>
+</head>
+<body>
+    <h1>Emotion Detection</h1>
+    <img id="video_feed" src="" alt="Video Feed" width="640" height="480">
+    <form id="audio_form" action="/record_audio" method="post">
+        <button type="submit">Start Audio Recording</button>
+    </form>
+    <div id="audio_status"></div>
+    <form id="emotion_analysis_form" action="/analyze_emotion" method="post">
+        <button type="submit">Analyze Emotion</button>
+    </form>
+    <div id="emotion_analysis_status"></div>
+    <div id="waveform_graph"></div>
+    <div id="emotion_graph"></div>
+    <script>
+        function updateVideoFeed() {
+            var video = document.getElementById('video_feed');
+            video.src = '/video_feed';
+            setTimeout(updateVideoFeed, 1000); // Update every second
+        }
+        updateVideoFeed();
+
+        // Update audio recording status
+        var audioForm = document.getElementById('audio_form');
+        audioForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetch('/record_audio', {
+                method: 'POST'
+            }).then(function(response) {
+                return response.text();
+            }).then(function(message) {
+                document.getElementById('audio_status').innerText = message;
+            });
+        });
+
+        // Update emotion analysis status
+        var emotionAnalysisForm = document.getElementById('emotion_analysis_form');
+        emotionAnalysisForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            fetch('/analyze_emotion', {
+                method: 'POST'
+            }).then(function(response) {
+                return response.text();
+            }).then(function(message) {
+                document.getElementById('emotion_analysis_status').innerText = message;
+
+                // Load waveform graph
+                fetch('/get_waveform').then(function(response) {
+                    return response.blob();
+                }).then(function(blob) {
+                    var url = URL.createObjectURL(blob);
+                    var waveformGraph = document.getElementById('waveform_graph');
+                    waveformGraph.innerHTML = '<img src="' + url + '" alt="Waveform">';
+                });
+
+                // Load emotion graph
+                fetch('/get_emotion_graph').then(function(response) {
+                    return response.blob();
+                }).then(function(blob) {
+                    var url = URL.createObjectURL(blob);
+                    var emotionGraph = document.getElementById('emotion_graph');
+                    emotionGraph.innerHTML = '<img src="' + url + '" alt="Emotion Graph">';
+                });
+            });
+        });
+    </script>
+</body>
+</html>
